@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import re
 import copy
 import time
+import json
+
 
 def take(link, result):
     url = link
@@ -64,7 +66,7 @@ def traverse(title_links, result, link_acess):
 result = {}
 final = {}
 link_acess = []
-keys = ["Banana", "Alemanha", "Gato"]
+keys = ["Rosa", "Argentina", "Vaca"]
 
 for i in range(len(keys)):
     txt = ('https://pt.wikipedia.org/wiki/' + keys[i])
@@ -73,6 +75,22 @@ for i in range(len(keys)):
     final[keys[i]] = copy.deepcopy(result)
     result.clear()
 
+final_json = json.dumps(final)
+file_name = "data.json"
 print()
-print(final)
+
+try:
+    with open(file_name, "w") as file:
+        file.write(final_json)
+    print(f"JSON saved successfully at: {file_name}")
+except Exception as e:
+    print(f"Error saving JSON: {e}")
+
+try:
+    with open(file_name, "r") as file:
+        json_content = json.load(file)
+    print(json_content)
+except Exception as e:
+    print(f"Error reading JSON: {e}")
+
 
