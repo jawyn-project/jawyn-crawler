@@ -1,12 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import copy
 import time
 import json
 
 
-def take(link, result):
+def take(link, result,key):
     url = link
     try:
         r = requests.get(url)
@@ -21,7 +20,9 @@ def take(link, result):
     paragraphs = soup.find_all('p')
     all_text = ' '.join(p.get_text() for p in paragraphs)
 
-    result[link] = all_text
+    headline = soup.title.string
+
+    result.append(f'{{"key": "{key}", "link": "{link}", "headline": "{headline}", "content": "{all_text}"}}')
 
     # Extraindo todos os links da página
     wiki_links = []
@@ -49,8 +50,9 @@ def take(link, result):
     return title_links, other_wiki_links, other_links
 
 
-def traverse(title_links, result, link_acess):
+def traverse(title_links, result, link_acess,key):
     print()
+
     for i in range(5):
         if title_links:
             link = title_links.pop(0)
@@ -58,39 +60,39 @@ def traverse(title_links, result, link_acess):
             if link not in link_acess:
                 print("calling link:" + link)
                 time.sleep(1)
-                new_title_links, other_wiki_links, other_links = take(link, result)
+                new_title_links, other_wiki_links, other_links = take(link, result,key)
                 title_links.extend(new_title_links)
                 link_acess.append(link)
 
 
-result = {}
-final = {}
+result = []
 link_acess = []
-keys = ["Rosa", "Argentina", "Vaca"]
+keys = ["Brsil", "Bolo", "Gato"]
+
 
 for i in range(len(keys)):
-    txt = ('https://pt.wikipedia.org/wiki/' + keys[i])
-    title_links, other_wiki_links, other_links = take(txt, result)
-    traverse(title_links, result, link_acess)
-    final[keys[i]] = copy.deepcopy(result)
-    result.clear()
+    link = ('https://pt.wikipedia.org/wiki/' + keys[i])
+    title_links, other_wiki_links, other_links = take(link, result, keys[i])
+    traverse(title_links, result, link_acess, keys[i])
 
-final_json = json.dumps(final)
+
 file_name = "data.json"
-print()
 
 try:
-    with open(file_name, "w") as file:
-        file.write(final_json)
+    with open(file_name, "w", encoding='utf-8') as file:
+        for item in result:
+            file.write(json.dumps(item, ensure_ascii=False))
+            file.write('\n')
     print(f"JSON saved successfully at: {file_name}")
 except Exception as e:
     print(f"Error saving JSON: {e}")
 
-try:
-    with open(file_name, "r") as file:
-        json_content = json.load(file)
-    print(json_content)
-except Exception as e:
-    print(f"Error reading JSON: {e}")
 
+#ler o .json
 
+# try:
+#     with open(file_name, "r", encoding='utf-8') as file:
+#         json_content = [json.loads(line) for line in file]
+#     print(json_content)
+# except Exception as e:
+#     print(f"Error reading JSON: {e}")
